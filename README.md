@@ -22,7 +22,7 @@ Telegram <──── tg-send / tg-edit / tg-send-file <──── Grok от�
 3. Попроси Grok создать рутину с **webhook**-триггером, промпт — из [`docs/routine-prompt.md`](docs/routine-prompt.md). Webhook URL и ключ берутся из панели рутины.
 4. На боксе:
    ```bash
-   git clone https://github.com/<you>/grokbot-telegram-bridge && cd grokbot-telegram-bridge
+   git clone https://github.com/clsasa1/grokbot-telegram-bridge && cd grokbot-telegram-bridge
    mkdir -p /home/box/tgrelay && cp config.env.example /home/box/tgrelay/config.env   # заполнить!
    ./install.sh            # SKIP_WHISPER=1 ./install.sh — без расшифровки голосовых
    ```
