@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+# Usage: tg-send <thread_id|dm> "html text"   -> prints "ok <message_id>" (last one if split) or "fail <reason>"
+#   "dm" = the owner's private chat (TG_USER_ID); a number = topic in the forum group (TG_GROUP_ID).
+# parse_mode=HTML, link previews off. Tags: <b> <i> <u> <s> <code> <pre> <a href="..."> <blockquote> <tg-spoiler>
+#   Escape & < > in plain text as &amp; &lt; &gt;. On a parse error each part is retried as plain text.
+# Text >4000 chars is auto-split at blank lines/newlines (keep tags within a paragraph).
+# Optional env TG_BUTTONS='Да|Нет' attaches an inline keyboard (one row; callback_data=label) to the last part;
+#   presses come back via the relay as text "[кнопка] <label>".
+# Stops a running tg-typing for the same target.
+# Identical text to the same target within 15 min is NOT resent (prints "ok <old_id> (duplicate skipped)"); TG_FORCE=1 to override.
+import sys,os; sys.path.insert(0,"/home/box/bin"); from tglib import *
+t,text=sys.argv[1],sys.argv[2]; stop_typing(t)
+# Dedup guard: identical text to the same target within 15 min is skipped (prints the earlier id). TG_FORCE=1 bypasses.
+import hashlib,time,fcntl
+_dd="/home/box/tgrelay/sent.json"; _k=hashlib.sha256((t+"\0"+text.strip()).encode()).hexdigest()
+_lf=open(_dd+".lock","w"); fcntl.flock(_lf,fcntl.LOCK_EX)
+try: _db=json.load(open(_dd))
+except Exception: _db={}
+_now=time.time(); _db={k:v for k,v in _db.items() if _now-v[0]<900}
+if _k in _db and not os.environ.get("TG_FORCE"):
+    print(f"ok {_db[_k][1]} (duplicate skipped)"); sys.exit(0)
+parts=split(text); r={"ok":False,"description":"empty text"}
+for i,p in enumerate(parts):
+    prm=dict(target(t),text=p,link_preview_options={"is_disabled":True})
+    if i==len(parts)-1 and os.environ.get("TG_BUTTONS"):
+        prm["reply_markup"]={"inline_keyboard":[[{"text":l,"callback_data":l[:64]} for l in os.environ["TG_BUTTONS"].split("|") if l]]}
+    r=call_html("sendMessage",prm)
+    if not r.get("ok"): break
+if r.get("ok"):
+    _db[_k]=[_now,r["result"]["message_id"]]; json.dump(_db,open(_dd,"w"))
+res(r)

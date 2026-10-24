@@ -1,0 +1,5 @@
+#!/bin/bash
+[ -f /home/box/tgrelay/config.env ] && set -a && . /home/box/tgrelay/config.env && set +a
+# Usage: tg-delete <dm|group> <message_id>  -> deletes a message in DM or the forum group. Prints ok/fail.
+[ "$1" = dm ] && c=$TG_USER_ID || c=$TG_GROUP_ID
+curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/deleteMessage" --data-urlencode chat_id=$c --data-urlencode message_id=$2 | python3 -c "import sys,json;print('ok' if json.load(sys.stdin).get('ok') else 'fail')"

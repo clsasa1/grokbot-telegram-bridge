@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+# Usage: tg-edit <dm|group> <message_id> "html text"  -> editMessageText (HTML, plain-text fallback on parse error).
+#   Prints "ok <message_id>" or "fail <reason>" ("message is not modified" counts as ok).
+import sys; sys.path.insert(0,"/home/box/bin"); from tglib import *
+r=call_html("editMessageText",{"chat_id":chat(sys.argv[1]),"message_id":sys.argv[2],"text":sys.argv[3],"link_preview_options":{"is_disabled":True}})
+if not r.get("ok") and "not modified" in r.get("description",""): r={"ok":True,"result":{"message_id":sys.argv[2]}}
+res(r)

@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+media/
+offset
+heartbeat
+*.lock
+sent.json
+chats.jsonl
+failed.jsonl
+relay.out
+typing/
+topics.json
+config.env

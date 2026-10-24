@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+# Usage: tg-send-file <thread_id|dm> <path> ["html caption"]  -> prints "ok <message_id>" or "fail <reason>".
+#   .jpg/.jpeg/.png/.webp -> sendPhoto; .ogg/.oga -> sendVoice; anything else -> sendDocument. Stops tg-typing for target.
+import sys,os; sys.path.insert(0,"/home/box/bin"); from tglib import *
+t,p=sys.argv[1],sys.argv[2]; cap=sys.argv[3] if len(sys.argv)>3 else None; stop_typing(t)
+ext=os.path.splitext(p)[1].lower()
+m,f=("sendPhoto","photo") if ext in (".jpg",".jpeg",".png",".webp") else ("sendVoice","voice") if ext in (".ogg",".oga") else ("sendDocument","document")
+prm=target(t)
+if cap: prm.update(caption=cap,parse_mode="HTML")
+r=upload(m,prm,f,p)
+if not r.get("ok") and cap and "parse entities" in r.get("description",""): prm.pop("parse_mode"); r=upload(m,prm,f,p)
+if not r.get("ok") and m=="sendPhoto": r=upload("sendDocument",prm,"document",p)
+res(r)

@@ -1,0 +1,11 @@
+#!/bin/bash
+[ -f /home/box/tgrelay/config.env ] && set -a && . /home/box/tgrelay/config.env && set +a
+# Usage: tg-typing <thread_id|dm> [seconds=60]  -> shows "typing…" every 4s in background until timeout,
+#   until killed, or until tg-send / tg-send-file to the same target. Returns immediately; prints "ok <pid>".
+#   Stop manually: tg-typing <target> stop. One loop per target (pid file /home/box/tgrelay/typing/<target>.pid).
+T=$1; S=${2:-60}; P=/home/box/tgrelay/typing; mkdir -p $P
+[ -f $P/$T.pid ] && kill $(cat $P/$T.pid) 2>/dev/null; rm -f $P/$T.pid
+[ "$S" = stop ] && { echo ok; exit 0; }
+if [ "$T" = dm ]; then a=(--data-urlencode chat_id=$TG_USER_ID); else a=(--data-urlencode chat_id=$TG_GROUP_ID --data-urlencode message_thread_id=$T); fi
+setsid bash -c 'end=$(( $(date +%s) + '"$S"' )); while [ $(date +%s) -lt $end ]; do curl -s -o /dev/null -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendChatAction" "$@" --data-urlencode action=typing; sleep 4; done; rm -f '"$P/$T.pid"'' _ "${a[@]}" >/dev/null 2>&1 < /dev/null &
+echo $! > $P/$T.pid; echo "ok $!"

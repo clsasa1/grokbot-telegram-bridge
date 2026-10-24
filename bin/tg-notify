@@ -1,0 +1,6 @@
+#!/bin/bash
+# Long text auto-split, TG_BUTTONS env supported, stops tg-typing for dm (all via tg-send).
+# Usage: tg-notify "text"  -> DM to the owner via your bot, prints ok/fail
+# HTML formatting (same as tg-send): <b> <i> <u> <s> <code> <pre> <a href="..."> <blockquote> <tg-spoiler>
+# Escape & < > in plain text as &amp; &lt; &gt;. Parse error -> one plain-text retry.
+exec /home/box/bin/tg-send dm "$1"
